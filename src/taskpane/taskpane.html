@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <title>Kosztomat AI Excel Add-in</title>
+    <link rel="stylesheet" href="taskpane.css" />
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <!-- For more information on Fluent UI, visit https://developer.microsoft.com/fluentui#/. -->
+    <link rel="stylesheet" href="https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.min.css"/>
+    <!-- Template styles -->
+    <link href="taskpane.css" rel="stylesheet" type="text/css" />
+    <!-- XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <img id="logo" src="/assets/icon-80.png" class="logo" alt="Kosztomat AI Logo" />
+            <h1>Kosztomat AI</h1>
+        </div>
+
+        <div class="info" id="infoBox">
+            Aby uzupełnić ceny robocizny, materiałów oraz przypisać odpowiednie kody budżetowe na podstawie wybranych
+            filtrów asortymentu i aktualnego cennika z zasobów, kliknij poniższy przycisk.
+            Proces może potrwać kilka minut – czas zależy od liczby pozycji do przetworzenia.<br>
+<strong> Kosztomat nie zmieni wartości, które zostały już wcześniej uzupełnione.</strong>
+        </div>
+
+        <button id="processBtn">Uzupełnij</button>
+        <button id="stopBtn">⏹️ Przerwij proces</button>
+        <div id="progressBarContainer">
+            <div id="progressBar">
+                <div id="progressFill"></div>
+            </div>
+            <div id="progressText"></div>
+        </div>
+        <div id="errorContainer"></div>
+    </div>
+    <script src="taskpane.js"></script>
+</body>
+
+</html>
