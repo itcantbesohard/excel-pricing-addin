@@ -1,6 +1,7 @@
 import { CONFIG } from './config.js';
-export async function loadPricelist() {
-  const url = "https://kosztomat-backend-804002774600.europe-west1.run.app/api/pricelist";
+
+export async function loadPricelist(pricelistName) {
+  const url = `${CONFIG.API_BASE_URL}/api/pricelist/${pricelistName}`;
   const headers = {
     "Content-Type": "application/json",
     "x-addin-key": "ztnTMrc8xaqTmcLWbvPDAUj-eRBjqLIyXzTGQZkqhf-KLXpKKBFK-BmLFy0yTVhh",
@@ -17,7 +18,7 @@ export async function loadPricelist() {
 
 export function filterPriceList(pricelist, assortmentFilter, categoryInstallations) {
   let filtered = pricelist;
-  
+
   if (assortmentFilter) {
     filtered = filtered.filter(item =>
       String(item["Filtr asortymentu"] ?? "").toLowerCase().trim() === String(assortmentFilter).toLowerCase().trim()
@@ -36,8 +37,16 @@ export function filterPriceList(pricelist, assortmentFilter, categoryInstallatio
   return filtered;
 }
 
-export async function queryAI(itemData, filteredPricelist) {
-  const url = "https://kosztomat-backend-804002774600.europe-west1.run.app/api/ai";
+export function chunkArray(array, size) {
+  const result = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+}
+
+export async function queryAI(itemData, filteredPricelist, retries = 3, delay = 1000) {
+  const url = `${CONFIG.API_BASE_URL}/api/ai`;
 
   const headers = {
     "Content-Type": "application/json",
@@ -46,22 +55,39 @@ export async function queryAI(itemData, filteredPricelist) {
   const promptUser = `SZUKANA POZYCJA: Opis: "${itemData.opis}", Producent: "${itemData.producent}", Typ: "${itemData.typ}"
 CENNIK: ${JSON.stringify(filteredPricelist)}`;
 
-  const body = JSON.stringify({ promptUser, promptSystem: CONFIG.PROMPT_SYSTEM, model: CONFIG.MODEL});
+  let promptSystem;
+  if (itemData.kategorie_instalacji.toLowerCase().trim() == "wnt") {
+    promptSystem = CONFIG.PROMPT_SYSTEM_WNT;
+  } else {
+    promptSystem = CONFIG.PROMPT_SYSTEM;
+  }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000);
-  try {
-    const resp = await fetch(url, { method: "POST", headers, body, signal: controller.signal });
-    clearTimeout(timeout);
-    if (!resp.ok) return { komentarz_ai: "Błąd AI API: " + resp.status + resp.statusText };
-    const result = await resp.json();
-    return {
-      cena_materialu: parseFloat(result.cena_materialu),
-      cena_robocizny: parseFloat(result.cena_robocizny),
-      kod_budzetowy: result.kod_budzetowy,
-      komentarz_ai: result.komentarz_ai
-    };
-  } catch (error) {
-    return { komentarz_ai: "Błąd dodatku: " + error.message };
+  const body = JSON.stringify({ promptUser: promptUser, promptSystem: promptSystem, model: CONFIG.MODEL });
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+
+    try {
+      const resp = await fetch(url, { method: "POST", headers, body, signal: controller.signal });
+      clearTimeout(timeout);
+      if (!resp.ok) {
+        if (attempt < retries && (resp.status === 429 || resp.status === 503)){
+        await new Promise(r => setTimeout(r, delay*attempt));
+        continue;
+        }
+      return { komentarz_ai: "Błąd AI API: " + resp.status + resp.statusText };
+      }
+      const result = await resp.json();
+      return {
+        cena_materialu: parseFloat(result.cena_materialu),
+        cena_robocizny: parseFloat(result.cena_robocizny),
+        kod_budzetowy: result.kod_budzetowy,
+        komentarz_ai: result.komentarz_ai
+      };
+    } catch (error) {
+      if(attempt < retries) await new Promise(r => setTimeout(r, delay*attempt));
+      else return { komentarz_ai: "Błąd dodatku: " + error.message };
+    }
   }
 }

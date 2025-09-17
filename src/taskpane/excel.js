@@ -36,10 +36,29 @@ export async function writetoExcel(rowNum, colIndexes, dane) {
   try {
     await Excel.run(async (context) => {
       const sheet = context.workbook.worksheets.getActiveWorksheet();
-      if ('komentarz_ai' in dane) sheet.getCell(rowNum, colIndexes.komentarz_ai).values = [[dane.komentarz_ai]];
-      if ('cena_materialu' in dane) sheet.getCell(rowNum, colIndexes.cena_materialu).values = [[dane.cena_materialu]];
-      if ('cena_robocizny' in dane) sheet.getCell(rowNum, colIndexes.cena_robocizny).values = [[dane.cena_robocizny]];
-      if ('kod_budzetowy' in dane) sheet.getCell(rowNum, colIndexes.kod_budzetowy).values = [[dane.kod_budzetowy]];
+      const color = "#DFCBFF";
+
+      if ('komentarz_ai' in dane) {
+        const cell = sheet.getCell(rowNum, colIndexes.komentarz_ai);
+        cell.values = [[dane.komentarz_ai]];
+        cell.format.fill.color = color;
+
+      }
+      if ('cena_materialu' in dane) { 
+        const cell = sheet.getCell(rowNum, colIndexes.cena_materialu);
+        cell.values = [[dane.cena_materialu]];
+        cell.format.fill.color = color;
+      }
+      if ('cena_robocizny' in dane) {
+        const cell = sheet.getCell(rowNum, colIndexes.cena_robocizny);
+        cell.values = [[dane.cena_robocizny]];
+        cell.format.fill.color = color;
+      }
+      if ('kod_budzetowy' in dane) { 
+        const cell = sheet.getCell(rowNum, colIndexes.kod_budzetowy);
+        cell.values = [[dane.kod_budzetowy]];
+        cell.format.fill.color = color;
+      }
       await context.sync();
     });
   } catch (e) {

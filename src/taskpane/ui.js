@@ -1,7 +1,7 @@
 export function updateProgressBar(current, total, txt = "") {
     const percent = Math.round((current / total) * 100);
-    document.getElementById("progress-bar").style.width = percent + "%";
-    document.getElementById("progress-bar").innerText = `${txt} [${perc}%]`;
+    document.getElementById("progressFill").style.width = percent + "%";
+    document.getElementById("progressText").innerText = `${txt} [${percent}%]`;
 }
 
 export function showProgress(msg) {
